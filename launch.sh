@@ -3,6 +3,7 @@ declare -a instance_list
 mapfile -t instance_list < <(aws ec2 run-instances --image-id $1 --count $2 --instance-type $3 --key-name $4 --security-group-ids $5 --subnet-id $6 --iam-instance-profile Name="$7" --associate-public-ip-address --user-data https://raw.githubusercontent.com/ademaron/environmentsetup/master/install-env.sh --output table | grep InstanceId | sed "s/|//g" | tr -d ' ' | sed "s/InstanceId//g")
 echo "Launched" ${instance_list[@]}
 aws ec2 wait instance-running --instance-ids ${instance_list[@]}
+aws ec2 wait instance-status-ok --instance-ids ${instance_list[@]}
 aws elb create-load-balancer --load-balancer-name itmo444am --listeners "Protocol=HTTP,LoadBalancerPort=80,InstanceProtocol=HTTP,InstancePort=80" --subnets $6
 aws elb register-instances-with-load-balancer --load-balancer-name itmo444am --instances ${instance_list[@]}
 aws elb configure-health-check --load-balancer-name itmo444am --health-check Target=HTTP:80/index.php,Interval=30,UnhealthyThreshold=2,HealthyThreshold=2,Timeout=3
