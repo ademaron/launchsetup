@@ -9,6 +9,7 @@ aws ec2 wait instance-running --instance-ids ${instance_list[@]}
 aws elb create-load-balancer --load-balancer-name itmo444am --listeners "Protocol=HTTP,LoadBalancerPort=80,InstanceProtocol=HTTP,InstancePort=80" --subnets $6
 aws elb register-instances-with-load-balancer --load-balancer-name itmo444am --instances ${instance_list[@]}
 aws elb configure-health-check --load-balancer-name itmo444am --health-check Target=HTTP:80/index.php,Interval=30,UnhealthyThreshold=2,HealthyThreshold=2,Timeout=3
+aws elb create-lb-cookie-stickiness-policy --load-balancer-name itmo444am --policy-name cookie-duration-policy --cookie-expiration-period 60
 aws autoscaling create-launch-configuration --launch-configuration-name launch_web_server --image-id $1 --user-data https://raw.githubusercontent.com/ademaron/environmentsetup/master/install-env.sh --security-group $5 --instance-type $3 --key-name $4 --iam-instance-profile $7 --associate-public-ip-address
 aws cloudwatch put-metric-alarm --alarm-name ScaleUp --alarm-description "ScaleUP when CPU >= 30" --metric-name CPUUtilization --namespace AWS/EC2 --statistic Average --period 300 --threshold 30 --comparison-operator GreaterThanThreshold --evaluation-periods 2 --unit Percent
 aws cloudwatch put-metric-alarm --alarm-name ScaleDown --alarm-description "ScaleDown when CPU <= 10 " --metric-name CPUUtilization --namespace AWS/EC2 --statistic Average --period 300 --threshold 10 --comparison-operator LessThanThreshold --evaluation-periods 2 --unit Percent
